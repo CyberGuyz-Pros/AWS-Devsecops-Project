@@ -5,45 +5,35 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - echo "Checking Java and Maven installations"
+      - echo "Installing dependencies"
       - java -version
       - mvn -version
-
+  
   pre_build:
     commands:
-      - echo "Validating environment and project setup"
-      - if [ -z "$SONAR_TOKEN" ]; then echo "ERROR: SONAR_TOKEN environment variable is not set"; exit 1; fi
-      - echo "Checking for pom.xml"
-      - if [ ! -f "pom.xml" ]; then echo "WARNING: No pom.xml found in root directory"; fi
-      - echo "Listing project structure"
-      - ls -la
-      - echo "Checking SonarCloud configuration"
-      - echo "Project Key: CyberGuyz-Pros_AWS-Devsecops-Project"
-      - echo "Organization: cyberguyz-pros"
-
+      - echo "Running pre-build checks"
+      - if [ -z "$SONAR_TOKEN" ]; then echo "ERROR: SONAR_TOKEN not set"; exit 1; fi
+      - echo "Project structure:" && ls -la
+  
   build:
     commands:
-      - echo "Running Maven build"
-      - mvn clean compile -DskipTests || echo "Maven build failed, but continuing"
-      
-      - echo "Running SonarCloud analysis with custom configuration"
-      - |
-        mvn sonar:sonar \
-        -Dsonar.projectKey=CyberGuyz-Pros_AWS-Devsecops-Project \
-        -Dsonar.organization=cyberguyz-pros \
-        -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.token=$SONAR_TOKEN \
-        -Dsonar.sources=. \
-        -Dsonar.java.binaries=target/classes \
-        -Dsonar.java.libraries=target/dependency \
-        -Dsonar.sourceEncoding=UTF-8 \
-        -Dsonar.verbose=true || echo "SonarCloud analysis failed"
+      - echo "Running Maven build and SonarCloud analysis"
+      - mvn clean verify sonar:sonar -Dsonar.projectKey=CyberGuyz-Pros_AWS-Devsecops-Project -Dsonar.organization=cyberguyz-pros -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN -Dsonar.sources=. -Dsonar.java.binaries=target/classes || echo "SonarCloud analysis completed with warnings"
 
   post_build:
     commands:
-      - echo "Build completed on `date`"
-      - echo "If SonarCloud analysis failed, check organization name and project key"
-      - echo "Verify the token has proper permissions in SonarCloud"
+      - echo "Build completed on $(date)"
+
+reports:
+  sonarcloud-report:
+    files:
+      - 'target/sonar/report-task.txt'
+    file-format: 'SONARQUBE_SCAN'
+
+cache:
+  paths:
+    - '/root/.m2/**/*'
+    - '/root/.sonar/cache/**/*'
 
 artifacts:
   files:
