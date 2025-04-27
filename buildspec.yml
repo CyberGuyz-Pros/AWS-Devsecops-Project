@@ -1,8 +1,11 @@
 version: 0.2
+env:
+  secrets-manager:
+    TOKEN: SONAR_TOKEN:SONAR_TOKEN
 phases:
   install:
     runtime-versions:
       java: latest
   build:
     commands:
-      - mvn verify sonar:sonar -Dsonar.projectKey=CyberGuyz-Pros_AWS-Devsecops-Project -Dsonar.organization=cyberguyz-pros -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=70898f1529148bf01086a166b95c9aabdf8bbd4a 
+      - mvn verify sonar:sonar -Dsonar.projectKey=CyberGuyz-Pros_AWS-Devsecops-Project -Dsonar.organization=cyberguyz-pros -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$TOKEN 
